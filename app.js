@@ -36,10 +36,11 @@ function setMobileMenu(isOpen){
     nav.classList.toggle("active", isOpen);
     menuToggle.classList.toggle("is-open", isOpen);
     menuToggle.setAttribute("aria-expanded", String(isOpen));
-    menuToggle.setAttribute(
-        "aria-label",
-        isOpen ? "Close navigation menu" : "Open navigation menu"
-    );
+    const menuLabel = currentLanguage === "es"
+    ? (isOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación")
+    : (isOpen ? "Close navigation menu" : "Open navigation menu");
+
+    menuToggle.setAttribute("aria-label", menuLabel);
 }
 
 if(menuToggle && nav){
@@ -132,6 +133,33 @@ function updateAppointmentEmailLinks(){
     });
 }
 
+function updateLocalizedAttributes(){
+
+    const localizedAttributes = [
+        ["aria-label", "aria-label"],
+        ["alt", "alt"],
+        ["title", "title"],
+        ["lightbox-alt", "data-lightbox-alt"]
+    ];
+
+    localizedAttributes.forEach(([dataSuffix, targetAttribute]) => {
+
+        document
+        .querySelectorAll(`[data-en-${dataSuffix}]`)
+        .forEach((element) => {
+
+            const translatedValue = element.getAttribute(
+                `data-${currentLanguage}-${dataSuffix}`
+            );
+
+            if(translatedValue !== null){
+
+                element.setAttribute(targetAttribute, translatedValue);
+            }
+        });
+    });
+}
+
 function updateReadMoreButtons(){
 
     document
@@ -170,6 +198,13 @@ function updateLanguage(){
     if(languageToggle){
 
         languageToggle.textContent = currentLanguage === "en" ? "ES" : "EN";
+    }
+
+    updateLocalizedAttributes();
+
+    if(menuToggle && nav){
+
+        setMobileMenu(nav.classList.contains("active"));
     }
 
     updateReadMoreButtons();
@@ -245,7 +280,7 @@ function openLightbox(src, alt){
     }
 
     lightboxImg.src = src;
-    lightboxImg.alt = alt || "Expanded image";
+    lightboxImg.alt = alt || (currentLanguage === "es" ? "Imagen ampliada" : "Expanded image");
     lightbox.classList.add("active");
     document.body.classList.add("lightbox-open");
 }
@@ -269,7 +304,10 @@ if(lightbox && lightboxImg && lightboxClose){
 
         img.addEventListener("click", () => {
 
-            openLightbox(img.currentSrc || img.src, img.alt || "Gallery image");
+            openLightbox(
+                img.currentSrc || img.src,
+                img.alt || (currentLanguage === "es" ? "Imagen de la galería" : "Gallery image")
+            );
         });
     });
 
@@ -281,12 +319,21 @@ if(lightbox && lightboxImg && lightboxClose){
 
             openLightbox(
                 trigger.dataset.lightboxSrc,
-                trigger.dataset.lightboxAlt || "Expanded image"
+                trigger.dataset.lightboxAlt || (currentLanguage === "es" ? "Imagen ampliada" : "Expanded image")
             );
         });
     });
 
     lightboxClose.addEventListener("click", closeLightbox);
+
+    lightboxClose.addEventListener("keydown", (event) => {
+
+        if(event.key === "Enter" || event.key === " "){
+
+            event.preventDefault();
+            closeLightbox();
+        }
+    });
 
     lightbox.addEventListener("click", (event) => {
 
